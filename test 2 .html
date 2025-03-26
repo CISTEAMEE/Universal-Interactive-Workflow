@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eClinicalWorks Interactive Quiz</title>
+    <style>
+        :root {
+            --primary: #4a6da7;
+            --primary-dark: #345089;
+            --secondary: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .login-form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        .btn-success {
+            background-color: var(--secondary);
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .quiz-container {
+            position: relative;
+        }
+
+        .question-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 300px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .answer-area {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            resize: vertical;
+        }
+
+        .timer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--warning);
+            color: var(--dark);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .progress-container {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .landscape {
+            width: 100%;
+            height: 300px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><path d="M0,400 L800,400 L800,200 C700,150 650,250 600,200 C550,150 500,100 450,150 C400,200 350,150 300,100 C250,50 200,100 150,150 C100,200 50,150 0,200 Z" fill="%23a0a0a0"/></svg>');
+            background-size: cover;
+            background-repeat: no-repeat;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .results-container {
+            margin-top: 20px;
+        }
+
+        .score-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .score-summary {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .score-item {
+            text-align: center;
+            flex: 1;
+            padding: 10px;
+        }
+
+        .score-item h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .question-review {
+            margin-top: 20px;
+        }
+
+        .question-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .question-item h4 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .user-answer, .correct-answer {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .user-answer {
+            background-color: #f8f9fa;
+        }
+
+        .correct-answer {
+            background-color: #e8f5e9;
+        }
+
+        .typing-stats {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .landscape-element {
+            position: absolute;
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .mountains {
+            width: 100%;
+            height: 200px;
+            bottom: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200"><path d="M0,200 L800,200 L800,100 C700,50 650,150 600,100 C550,50 500,0 450,50 C400,100 350,50 300,0 C250,50 200,100 150,50 C100,0 50,50 0,100 Z" fill="%23a0a0a0"/></svg>');
+            background-size: cover;
+        }
+
+        .green-mountains {
+            width: 100%;
+            height: 200px;
+            bottom: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200"><path d="M0,200 L800,200 L800,100 C700,50 650,150 600,100 C550,50 500,0 450,50 C400,100 350,50 300,0 C250,50 200,100 150,50 C100,0 50,50 0,100 Z" fill="%2367a867"/><path d="M300,0 L350,50 L400,0 L450,50 L500,0 L550,50 L600,0 L650,50 L700,0 L750,50 L800,0 L800,100 C700,50 650,150 600,100 C550,50 500,0 450,50 C400,100 350,50 300,0 Z" fill="%23ffffff"/></svg>');
+            background-size: cover;
+        }
+
+        .river {
+            width: 50px;
+            height: 200px;
+            bottom: 0;
+            left: 400px;
+            background-color: #4a90e2;
+            transform: rotate(5deg);
+        }
+
+        .trees {
+            width: 100%;
+            height: 100px;
+            bottom: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 100"><circle cx="100" cy="50" r="30" fill="%23228b22"/><rect x="95" y="50" width="10" height="50" fill="%23654321"/><circle cx="200" cy="40" r="25" fill="%23228b22"/><rect x="195" y="40" width="10" height="60" fill="%23654321"/><circle cx="300" cy="60" r="35" fill="%23228b22"/><rect x="295" y="60" width="10" height="40" fill="%23654321"/><circle cx="500" cy="45" r="30" fill="%23228b22"/><rect x="495" y="45" width="10" height="55" fill="%23654321"/><circle cx="600" cy="55" r="25" fill="%23228b22"/><rect x="595" y="55" width="10" height="45" fill="%23654321"/><circle cx="700" cy="50" r="35" fill="%23228b22"/><rect x="695" y="50" width="10" height="50" fill="%23654321"/></svg>');
+            background-size: cover;
+        }
+
+        .alley {
+            width: 50px;
+            height: 200px;
+            bottom: 0;
+            left: 375px;
+            background-color: #c19a6b;
+        }
+
+        .palace {
+            width: 150px;
+            height: 150px;
+            bottom: 0;
+            left: 325px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect x="25" y="50" width="100" height="100" fill="%23e6e6e6"/><polygon points="75,0 25,50 125,50" fill="%23cc0000"/><rect x="45" y="70" width="20" height="30" fill="%234a90e2"/><rect x="85" y="70" width="20" height="30" fill="%234a90e2"/><rect x="65" y="100" width="20" height="50" fill="%23a0522d"/></svg>');
+            background-size: cover;
+        }
+
+        .swing {
+            width: 50px;
+            height: 70px;
+            bottom: 30px;
+            left: 200px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 70"><line x1="25" y1="0" x2="25" y2="40" stroke="%23000" stroke-width="2"/><line x1="15" y1="40" x2="35" y2="40" stroke="%23a0522d" stroke-width="4"/><line x1="15" y1="0" x2="15" y2="40" stroke="%23000" stroke-width="2"/><line x1="35" y1="0" x2="35" y2="40" stroke="%23000" stroke-width="2"/></svg>');
+            background-size: cover;
+        }
+
+        .bridge {
+            width: 100px;
+            height: 30px;
+            bottom: 50px;
+            left: 375px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 30"><rect x="0" y="10" width="100" height="10" fill="%23a0522d"/><line x1="10" y1="10" x2="10" y2="30" stroke="%23a0522d" stroke-width="5"/><line x1="30" y1="10" x2="30" y2="30" stroke="%23a0522d" stroke-width="5"/><line x1="50" y1="10" x2="50" y2="30" stroke="%23a0522d" stroke-width="5"/><line x1="70" y1="10" x2="70" y2="30" stroke="%23a0522d" stroke-width="5"/><line x1="90" y1="10" x2="90" y2="30" stroke="%23a0522d" stroke-width="5"/></svg>');
+            background-size: cover;
+        }
+
+        .sky {
+            width: 100%;
+            height: 200px;
+            top: 0;
+            background: linear-gradient(to bottom, #4a90e2, #87ceeb);
+        }
+
+        .sun {
+            width: 50px;
+            height: 50px;
+            top: 30px;
+            right: 50px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><circle cx="25" cy="25" r="25" fill="%23ffff00"/></svg>');
+            background-size: cover;
+        }
+
+        .flag {
+            width: 30px;
+            height: 50px;
+            top: 0;
+            left: 75px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 50"><rect x="0" y="0" width="5" height="50" fill="%23a0522d"/><rect x="5" y="0" width="25" height="15" fill="%23cc0000"/><text x="7" y="12" font-family="Arial" font-size="6" fill="%23ffffff">CLS</text></svg>');
+            background-size: cover;
+        }
+
+        .user-name-display {
+            position: absolute;
+            bottom: 10px;
+            left: 350px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+            
+            .container {
+                width: 100%;
+                max-width: none;
+            }
+            
+            .card, .score-card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>eClinicalWorks Interactive Quiz</h1>
+            <p>Test your knowledge and skills with eClinicalWorks</p>
+        </div>
+
+        <!-- Login Screen -->
+        <div id="login-screen" class="card login-form">
+            <h2>Sign In</h2>
+            <div class="form-group">
+                <label for="username">Your Name</label>
+                <input type="text" id="username" class="form-control" placeholder="Enter your name" required>
+            </div>
+            <button id="login-btn" class="btn btn-block">Start Quiz</button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div class="progress-container">
+                <h3>Progress: <span id="progress-text">0/10</span></h3>
+                <div class="progress-bar">
+                    <div id="progress" class="progress" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="landscape">
+                <div class="landscape-element mountains" style="opacity: 1;"></div>
+                <div class="landscape-element green-mountains"></div>
+                <div class="landscape-element river"></div>
+                <div class="landscape-element trees"></div>
+                <div class="landscape-element alley"></div>
+                <div class="landscape-element palace"></div>
+                <div class="landscape-element swing"></div>
+                <div class="landscape-element bridge"></div>
+                <div class="landscape-element sky"></div>
+                <div class="landscape-element sun"></div>
+                <div class="landscape-element flag"></div>
+                <div class="user-name-display" id="user-name-display"></div>
+            </div>
+
+            <div class="quiz-container">
+                <div class="timer" id="timer">Time: 90s</div>
+                <div class="card question-card">
+                    <h2>Question <span id="question-number">1</span></h2>
+                    <p id="question-text" class="question-text"></p>
+                    <textarea id="answer-area" class="answer-area" placeholder="Type your answer here..."></textarea>
+                    <div style="margin-top: 20px; text-align: right;">
+                        <button id="submit-btn" class="btn">Submit Answer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden">
+            <div class="card score-card">
+                <h2>Quiz Results</h2>
+                <div class="score-summary">
+                    <div class="score-item">
+                        <h3>Total Score</h3>
+                        <p id="total-score">0%</p>
+                    </div>
+                    <div class="score-item">
+                        <h3>Accuracy</h3>
+                        <p id="accuracy-score">0%</p>
+                    </div>
+                    <div class="score-item">
+                        <h3>Clarity</h3>
+                        <p id="clarity-score">0%</p>
+                    </div>
+                    <div class="score-item">
+                        <h3>Efficiency</h3>
+                        <p id="efficiency-score">0%</p>
+                    </div>
+                </div>
+                <div class="no-print" style="text-align: center; margin-top: 20px;">
+                    <button id="print-btn" class="btn">Print Results</button>
+                    <button id="restart-btn" class="btn" style="margin-left: 10px;">Restart Quiz</button>
+                </div>
+            </div>
+
+            <div class="results-container" id="results-container">
+                <!-- Question review items will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz data
+        const quizData = {
+            questions: [
+                {
+                    id: 1,
+                    text: "Describe the process to create a new patient in eClinicalWorks.",
+                    correctAnswer: "1. Click on the 'New Patient' button in the top menu.\n2. Fill in the required demographic information (name, DOB, gender, address, phone).\n3. Select the appropriate insurance information.\n4. Assign a primary care provider.\n5. Set the patient status to 'Active'.\n6. Click 'Save' to create the patient record.",
+                    keywords: ["new patient", "demographic", "insurance", "provider", "save"]
+                },
+                {
+                    id: 2,
+                    text: "How do you schedule a follow-up appointment for a patient in eClinicalWorks?",
+                    correctAnswer: "1. Open the patient's record.\n2. Click on the 'Resource Scheduling' button.\n3. Select the appropriate provider or resource.\n4. Choose the date and time for the follow-up.\n5. Select the appointment type as 'Follow-up'.\n6. Add any necessary notes or instructions.\n7. Click 'Save' to schedule the appointment.",
+                    keywords: ["resource scheduling", "provider", "date", "time", "follow-up", "save"]
+                },
+                {
+                    id: 3,
+                    text: "Explain how to document a patient's vital signs in eClinicalWorks.",
+                    correctAnswer: "1. Open the patient's encounter.\n2. Navigate to the 'Vitals' section.\n3. Enter the patient's height, weight, temperature, blood pressure, pulse, and respiratory rate.\n4. The BMI will be automatically calculated based on height and weight.\n5. Click 'Save' to record the vital signs.\n6. The vitals will now appear in the patient's chart and can be viewed in the Progress Notes.",
+                    keywords: ["vitals", "height", "weight", "temperature", "blood pressure", "pulse", "respiratory", "BMI", "save"]
+                },
+                {
+                    id: 4,
+                    text: "How do you generate a prescription refill in eClinicalWorks?",
+                    correctAnswer: "1. Open the patient's chart.\n2. Navigate to the 'Medications' section.\n3. Find the medication that needs to be refilled.\n4. Right-click on the medication and select 'Refill'.\n5. Verify the dosage, quantity, and refills.\n6. Select the appropriate pharmacy.\n7. Click 'Send' to transmit the prescription electronically.\n8. Document the refill in the patient's progress notes.",
+                    keywords: ["medications", "refill", "dosage", "quantity", "pharmacy", "send", "document"]
+                },
+                {
+                    id: 5,
+                    text: "Describe the process to create and send a referral in eClinicalWorks.",
+                    correctAnswer: "1. Open the patient's encounter.\n2. Click on the 'Referrals' button in the right panel.\n3. Select 'New Referral'.\n4. Choose the specialty or specific provider for the referral.\n5. Enter the reason for referral and any relevant clinical information.\n6. Attach any necessary documents or test results.\n7. Select the urgency level.\n8. Click 'Save' and then 'Send' to transmit the referral.\n9. The referral will be tracked in the system for follow-up.",
+                    keywords: ["referrals", "specialty", "provider", "reason", "clinical information", "documents", "urgency", "send", "track"]
+                },
+                {
+                    id: 6,
+                    text: "How do you document a telephone encounter in eClinicalWorks?",
+                    correctAnswer: "1. From the patient's dashboard, click on 'Telephone Encounter'.\n2. Select the appropriate call type (patient call, pharmacy, etc.).\n3. Document the reason for the call.\n4. Record the details of the conversation.\n5. Note any actions taken or advice given.\n6. Assign the telephone encounter to the appropriate provider if needed.\n7. Click 'Save' to complete the documentation.\n8. The telephone encounter will be saved in the patient's chart for future reference.",
+                    keywords: ["telephone encounter", "call type", "reason", "details", "actions", "provider", "save", "chart"]
+                },
+                {
+                    id: 7,
+                    text: "Explain the process to order and track lab tests in eClinicalWorks.",
+                    correctAnswer: "1. Open the patient's encounter.\n2. Click on the 'Labs' button in the right panel.\n3. Search for and select the appropriate lab tests.\n4. Specify the diagnosis or reason for the test.\n5. Select the lab facility where the test will be performed.\n6. Indicate if the test is STAT (urgent) if necessary.\n7. Add any special instructions.\n8. Click 'Save' to generate the lab order.\n9. Track the status of the lab order in the 'Labs' section of the patient's chart.\n10. Review and sign off on results when they are received.",
+                    keywords: ["labs", "tests", "diagnosis", "facility", "STAT", "instructions", "save", "track", "results", "sign off"]
+                },
+                {
+                    id: 8,
+                    text: "How do you create and manage a patient's problem list in eClinicalWorks?",
+                    correctAnswer: "1. Open the patient's chart.\n2. Navigate to the 'Problems' section.\n3. Click 'Add' to create a new problem.\n4. Search for and select the appropriate diagnosis using ICD-10 codes.\n5. Specify if the problem is acute or chronic.\n6. Add the onset date and status (active, resolved, etc.).\n7. Include any relevant notes about the problem.\n8. Click 'Save' to add the problem to the list.\n9. To update a problem, select it from the list and click 'Edit'.\n10. To resolve a problem, change its status to 'Resolved' and add the resolution date.",
+                    keywords: ["problems", "diagnosis", "ICD-10", "acute", "chronic", "onset", "status", "active", "resolved", "edit"]
+                },
+                {
+                    id: 9,
+                    text: "Describe how to use the eClinicalWorks Patient Portal to communicate with patients.",
+                    correctAnswer: "1. Ensure the patient is registered for the Patient Portal.\n2. From the patient's chart, click on 'Patient Portal' in the right panel.\n3. Select 'New Message' to initiate communication.\n4. Choose the message type (general, medical advice, etc.).\n5. Compose the message, including any attachments if needed.\n6. Click 'Send' to deliver the message to the patient's portal.\n7. Patient responses will appear in your eClinicalWorks inbox.\n8. All portal communications are automatically documented in the patient's chart.\n9. You can also use templates for common messages to save time.",
+                    keywords: ["patient portal", "message", "type", "compose", "attachments", "send", "responses", "inbox", "documented", "templates"]
+                },
+                {
+                    id: 10,
+                    text: "How do you generate and customize reports in eClinicalWorks?",
+                    correctAnswer: "1. Navigate to the 'Reports' module from the main menu.\n2. Select the report category (clinical, financial, operational, etc.).\n3. Choose the specific report type you need.\n4. Set the parameters for the report (date range, providers, locations, etc.).\n5. Click 'Generate Report' to create the initial report.\n6. Use the filtering options to refine the data displayed.\n7. Click on column headers to sort the data as needed.\n8. Use the 'Customize' option to add or remove columns.\n9. Save custom report templates for future use.\n10. Export the report to Excel, PDF, or other formats as needed.",
+                    keywords: ["reports", "category", "parameters", "generate", "filtering", "sort", "customize", "templates", "export"]
+                }
+            ]
+        };
+
+        // DOM Elements
+        const loginScreen = document.getElementById('login-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const usernameInput = document.getElementById('username');
+        const loginBtn = document.getElementById('login-btn');
+        const questionNumber = document.getElementById('question-number');
+        const questionText = document.getElementById('question-text');
+        const answerArea = document.getElementById('answer-area');
+        const submitBtn = document.getElementById('submit-btn');
+        const timer = document.getElementById('timer');
+        const progressText = document.getElementById('progress-text');
+        const progressBar = document.getElementById('progress');
+        const totalScore = document.getElementById('total-score');
+        const accuracyScore = document.getElementById('accuracy-score');
+        const clarityScore = document.getElementById('clarity-score');
+        const efficiencyScore = document.getElementById('efficiency-score');
+        const resultsContainer = document.getElementById('results-container');
+        const printBtn = document.getElementById('print-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const userNameDisplay = document.getElementById('user-name-display');
+
+        // Landscape elements
+        const landscapeElements = {
+            greenMountains: document.querySelector('.green-mountains'),
+            river: document.querySelector('.river'),
+            trees: document.querySelector('.trees'),
+            alley: document.querySelector('.alley'),
+            palace: document.querySelector('.palace'),
+            swing: document.querySelector('.swing'),
+            bridge: document.querySelector('.bridge'),
+            sky: document.querySelector('.sky'),
+            sun: document.querySelector('.sun'),
+            flag: document.querySelector('.flag')
+        };
+
+        // Quiz state
+        let currentUser = '';
+        let currentQuestion = 0;
+        let quizStartTime = 0;
+        let questionStartTime = 0;
+        let timeRemaining = 90;
+        let timerInterval = null;
+        let typingStats = [];
+        let userAnswers = [];
+        let scores = [];
+        let totalTimeSpent = 0;
+        let shuffledQuestions = [];
+
+        // Initialize the quiz
+        function initQuiz() {
+            // Shuffle questions
+            shuffledQuestions = [...quizData.questions].sort(() => Math.random() - 0.5);
+            
+            // Reset state
+            currentQuestion = 0;
+            userAnswers = [];
+            scores = [];
+            totalTimeSpent = 0;
+            typingStats = [];
+            
+            // Update UI
+            updateQuestion();
+            updateProgress();
+            resetLandscape();
+        }
+
+        // Login function
+        loginBtn.addEventListener('click', function() {
+            const username = usernameInput.value.trim();
+            if (username) {
+                currentUser = username;
+                loginScreen.classList.add('hidden');
+                quizScreen.classList.remove('hidden');
+                
+                // Record start time
+                quizStartTime = Date.now();
+                
+                // Initialize quiz
+                initQuiz();
+                
+                // Set user name in landscape
+                userNameDisplay.textContent = username;
+            }
+        });
+
+        // Update question
+        function updateQuestion() {
+            if (currentQuestion < shuffledQuestions.length) {
+                const question = shuffledQuestions[currentQuestion];
+                questionNumber.textContent = currentQuestion + 1;
+                questionText.textContent = question.text;
+                answerArea.value = '';
+                
+                // Reset timer
+                timeRemaining = 90;
+                updateTimer();
+                
+                // Clear previous timer if exists
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
+                
+                // Start timer
+                questionStartTime = Date.now();
+                timerInterval = setInterval(function() {
+                    timeRemaining--;
+                    updateTimer();
+                    
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        submitAnswer();
+                    }
+                }, 1000);
+                
+                // Track typing stats
+                setupTypingTracking();
+            } else {
+                showResults();
+            }
+        }
+
+        // Setup typing tracking
+        function setupTypingTracking() {
+            let startTypingTime = null;
+            let keystrokes = 0;
+            let words = 0;
+            
+            answerArea.addEventListener('keydown', function(e) {
+                if (!startTypingTime) {
+                    startTypingTime = Date.now();
+                }
+                keystrokes++;
+            });
+            
+            answerArea.addEventListener('input', function() {
+                words = this.value.split(/\s+/).filter(word => word.length > 0).length;
+            });
+            
+            // Store this data when submitting
+            submitBtn.onclick = function() {
+                const endTypingTime = Date.now();
+                const typingTime = startTypingTime ? (endTypingTime - startTypingTime) / 1000 : 0;
+                const wpm = typingTime > 0 ? (words / typingTime) * 60 : 0;
+                
+                typingStats.push({
+                    keystrokes,
+                    words,
+                    typingTime,
+                    wpm
+                });
+                
+                submitAnswer();
+            };
+        }
+
+        // Submit answer
+        function submitAnswer() {
+            clearInterval(timerInterval);
+            
+            const question = shuffledQuestions[currentQuestion];
+            const userAnswer = answerArea.value.trim();
+            const timeSpent = (Date.now() - questionStartTime) / 1000;
+            
+            totalTimeSpent += timeSpent;
+            
+            // Calculate scores
+            const accuracyScore = calculateAccuracyScore(userAnswer, question.correctAnswer, question.keywords);
+            const clarityScore = calculateClarityScore(userAnswer);
+            const efficiencyScore = calculateEfficiencyScore(typingStats[currentQuestion]);
+            
+            const totalQuestionScore = (accuracyScore * 0.7) + (clarityScore * 0.15) + (efficiencyScore * 0.15);
+            
+            // Store answer and score
+            userAnswers.push({
+                questionId: question.id,
+                questionText: question.text,
+                userAnswer,
+                correctAnswer: question.correctAnswer,
+                timeSpent,
+                accuracyScore,
+                clarityScore,
+                efficiencyScore,
+                totalScore: totalQuestionScore,
+                typingStats: typingStats[currentQuestion]
+            });
+            
+            scores.push(totalQuestionScore);
+            
+            // Update landscape based on score
+            updateLandscape();
+            
+            // Move to next question
+            currentQuestion++;
+            updateProgress();
+            
+            if (currentQuestion < shuffledQuestions.length) {
+                updateQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Calculate accuracy score (70% of total)
+        function calculateAccuracyScore(userAnswer, correctAnswer, keywords) {
+            // Check for keywords
+            let keywordCount = 0;
+            keywords.forEach(keyword => {
+                if (userAnswer.toLowerCase().includes(keyword.toLowerCase())) {
+                    keywordCount++;
+                }
+            });
+            
+            const keywordScore = keywordCount / keywords.length;
+            
+            // Check for similarity to correct answer
+            const similarityScore = calculateSimilarity(userAnswer, correctAnswer);
+            
+            // Combine scores (70% keyword presence, 30% overall similarity)
+            return (keywordScore * 0.7) + (similarityScore * 0.3);
+        }
+
+        // Calculate clarity score (15% of total)
+        function calculateClarityScore(answer) {
+            // Check for numbered lists or bullet points
+            const hasNumberedList = /^\d+\.\s/m.test(answer);
+            const hasBulletPoints = /^[\*\-•]\s/m.test(answer);
+            const hasStructure = hasNumberedList || hasBulletPoints;
+            
+            // Check for paragraphs
+            const hasParagraphs = answer.split(/\n\s*\n/).length > 1;
+            
+            // Check for proper capitalization
+            const sentences = answer.split(/[.!?]+\s/);
+            let properCapitalization = 0;
+            
+            sentences.forEach(sentence => {
+                const trimmed = sentence.trim();
+                if (trimmed.length > 0 && trimmed[0] === trimmed[0].toUpperCase()) {
+                    properCapitalization++;
+                }
+            });
+            
+            const capitalizationScore = sentences.length > 0 ? properCapitalization / sentences.length : 0;
+            
+            // Combine scores
+            return (hasStructure ? 0.5 : 0) + (hasParagraphs ? 0.2 : 0) + (capitalizationScore * 0.3);
+        }
+
+        // Calculate efficiency score (15% of total)
+        function calculateEfficiencyScore(stats) {
+            if (!stats) return 0;
+            
+            // Typing speed (WPM) - target is 60 WPM
+            const wpmScore = Math.min(stats.wpm / 60, 1);
+            
+            // Response time - lower is better, target is 10 seconds
+            const responseTimeScore = Math.max(0, 1 - (stats.typingTime / 60));
+            
+            // Combine scores
+            return (wpmScore * 0.6) + (responseTimeScore * 0.4);
+        }
+
+        // Calculate text similarity
+        function calculateSimilarity(text1, text2) {
+            // Simple implementation - can be improved
+            const words1 = text1.toLowerCase().split(/\W+/).filter(w => w.length > 0);
+            const words2 = text2.toLowerCase().split(/\W+/).filter(w => w.length > 0);
+            
+            let matchCount = 0;
+            words1.forEach(word => {
+                if (words2.includes(word)) {
+                    matchCount++;
+                }
+            });
+            
+            return words1.length > 0 ? matchCount / Math.max(words1.length, words2.length) : 0;
+        }
+
+        // Update timer display
+        function updateTimer() {
+            timer.textContent = `Time: ${timeRemaining}s`;
+            
+            if (timeRemaining <= 10) {
+                timer.style.backgroundColor = '#dc3545';
+            } else if (timeRemaining <= 30) {
+                timer.style.backgroundColor = '#ffc107';
+            } else {
+                timer.style.backgroundColor = '#28a745';
+            }
+        }
+
+        // Update progress
+        function updateProgress() {
+            const progress = (currentQuestion / shuffledQuestions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${currentQuestion}/${shuffledQuestions.length}`;
+        }
+
+        // Reset landscape
+        function resetLandscape() {
+            Object.values(landscapeElements).forEach(element => {
+                element.style.opacity = '0';
+            });
+        }
+
+        // Update landscape based on score
+        function updateLandscape() {
+            const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+            
+            // Update landscape elements based on score
+            if (averageScore >= 0.2) {
+                landscapeElements.greenMountains.style.opacity = '1';
+            }
+            
+            if (averageScore >= 0.3) {
+                landscapeElements.river.style.opacity = '1';
+            }
+            
+            if (averageScore >= 0.4) {
+                landscapeElements.trees.style.opacity = '1';
+            }
+            
+            if (averageScore >= 0.5) {
+                landscapeElements.alley.style.opacity = '1';
+            }
+            
+            if (averageScore >= 0.6) {
+                landscapeElements.palace.style.opacity = '1';
+            }
+            
+            if (averageScore >= 0.7) {
+                landscapeElements.swing.style.opacity = '1';
+            }
+            
+            if (averageScore >= 0.8) {
+                landscapeElements.bridge.style.opacity = '1';
+            }
+            
+            if (averageScore >= 0.85) {
+                landscapeElements.sky.style.opacity = '1';
+            }
+            
+            if (averageScore >= 0.9) {
+                landscapeElements.sun.style.opacity = '1';
+            }
+            
+            if (averageScore >= 0.95) {
+                landscapeElements.flag.style.opacity = '1';
+                userNameDisplay.style.opacity = '1';
+            }
+        }
+
+        // Show results
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            
+            // Calculate final scores
+            const finalScores = calculateFinalScores();
+            
+            // Update score display
+            totalScore.textContent = `${Math.round(finalScores.total * 100)}%`;
+            accuracyScore.textContent = `${Math.round(finalScores.accuracy * 100)}%`;
+            clarityScore.textContent = `${Math.round(finalScores.clarity * 100)}%`;
+            efficiencyScore.textContent = `${Math.round(finalScores.efficiency * 100)}%`;
+            
+            // Generate question review
+            generateQuestionReview();
+            
+            // Save results to local storage
+            saveResults(finalScores);
+        }
+
+        // Calculate final scores
+        function calculateFinalScores() {
+            const accuracyTotal = userAnswers.reduce((sum, answer) => sum + answer.accuracyScore, 0) / userAnswers.length;
+            const clarityTotal = userAnswers.reduce((sum, answer) => sum + answer.clarityScore, 0) / userAnswers.length;
+            const efficiencyTotal = userAnswers.reduce((sum, answer) => sum + answer.efficiencyScore, 0) / userAnswers.length;
+            
+            const totalScore = (accuracyTotal * 0.7) + (clarityTotal * 0.15) + (efficiencyTotal * 0.15);
+            
+            return {
+                total: totalScore,
+                accuracy: accuracyTotal,
+                clarity: clarityTotal,
+                efficiency: efficiencyTotal
+            };
+        }
+
+        // Generate question review
+        function generateQuestionReview() {
+            resultsContainer.innerHTML = '';
+            
+            // Add report header
+            const reportHeader = document.createElement('div');
+            reportHeader.className = 'card';
+            reportHeader.innerHTML = `
+                <h2>eClinicalWorks Quiz Report</h2>
+                <p><strong>Name:</strong> ${currentUser}</p>
+                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                <p><strong>Total Time:</strong> ${Math.round(totalTimeSpent / 60)} minutes ${Math.round(totalTimeSpent % 60)} seconds</p>
+            `;
+            resultsContainer.appendChild(reportHeader);
+            
+            // Add question reviews
+            userAnswers.forEach((answer, index) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'card question-item';
+                
+                const typingStats = answer.typingStats || { wpm: 0, typingTime: 0 };
+                
+                questionItem.innerHTML = `
+                    <h4>Question ${index + 1}: ${answer.questionText}</h4>
+                    <div class="user-answer">
+                        <strong>Your Answer:</strong>
+                        <p>${answer.userAnswer.replace(/\n/g, '<br>')}</p>
+                        <div class="typing-stats">
+                            <p>Time spent: ${Math.round(answer.timeSpent)} seconds | Typing speed: ${Math.round(typingStats.wpm)} WPM</p>
+                        </div>
+                    </div>
+                    <div class="correct-answer">
+                        <strong>Correct Answer:</strong>
+                        <p>${answer.correctAnswer.replace(/\n/g, '<br>')}</p>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <p><strong>Score:</strong> ${Math.round(answer.totalScore * 100)}%</p>
+                    </div>
+                `;
+                
+                resultsContainer.appendChild(questionItem);
+            });
+            
+            // Add strengths and weaknesses analysis
+            const analysisItem = document.createElement('div');
+            analysisItem.className = 'card';
+            
+            // Calculate strengths and weaknesses
+            const strengths = [];
+            const weaknesses = [];
+            
+            const avgAccuracy = userAnswers.reduce((sum, a) => sum + a.accuracyScore, 0) / userAnswers.length;
+            const avgClarity = userAnswers.reduce((sum, a) => sum + a.clarityScore, 0) / userAnswers.length;
+            const avgEfficiency = userAnswers.reduce((sum, a) => sum + a.efficiencyScore, 0) / userAnswers.length;
+            
+            if (avgAccuracy >= 0.7) strengths.push('Knowledge of eClinicalWorks procedures');
+            else weaknesses.push('Knowledge of eClinicalWorks procedures');
+            
+            if (avgClarity >= 0.7) strengths.push('Clear and organized communication');
+            else weaknesses.push('Organization and clarity in responses');
+            
+            if (avgEfficiency >= 0.7) strengths.push('Efficient typing and response time');
+            else weaknesses.push('Typing speed and response time');
+            
+            analysisItem.innerHTML = `
+                <h3>Performance Analysis</h3>
+                <div style="margin-top: 15px;">
+                    <h4>Strengths:</h4>
+                    <ul>
+                        ${strengths.map(s => `<li>${s}</li>`).join('')}
+                    </ul>
+                </div>
+                <div style="margin-top: 15px;">
+                    <h4>Areas for Improvement:</h4>
+                    <ul>
+                        ${weaknesses.map(w => `<li>${w}</li>`).join('')}
+                    </ul>
+                </div>
+                <div style="margin-top: 15px;">
+                    <h4>Recommendations:</h4>
+                    <ul>
+                        ${weaknesses.length > 0 ? weaknesses.map(w => {
+                            if (w.includes('Knowledge')) {
+                                return '<li>Review the eClinicalWorks documentation and practice common workflows</li>';
+                            } else if (w.includes('clarity')) {
+                                return '<li>Practice using numbered lists and clear step-by-step instructions</li>';
+                            } else {
+                                return '<li>Practice typing and improve response time through regular exercises</li>';
+                            }
+                        }).join('') : '<li>Continue to maintain your excellent performance</li>'}
+                    </ul>
+                </div>
+            `;
+            
+            resultsContainer.appendChild(analysisItem);
+        }
+
+        // Save results to local storage
+        function saveResults(finalScores) {
+            const results = {
+                user: currentUser,
+                date: new Date().toISOString(),
+                scores: finalScores,
+                answers: userAnswers,
+                totalTime: totalTimeSpent
+            };
+            
+            // Get existing results
+            let allResults = JSON.parse(localStorage.getItem('ecwQuizResults') || '[]');
+            
+            // Add new results
+            allResults.push(results);
+            
+            // Save back to local storage
+            localStorage.setItem('ecwQuizResults', JSON.stringify(allResults));
+            
+            // Create a text version for download
+            createScoreFile(results);
+        }
+
+        // Create score file for download
+        function createScoreFile(results) {
+            const scoreText = `eClinicalWorks Quiz Results
+User: ${results.user}
+Date: ${new Date(results.date).toLocaleString()}
+Total Score: ${Math.round(results.scores.total * 100)}%
+Accuracy: ${Math.round(results.scores.accuracy * 100)}%
+Clarity: ${Math.round(results.scores.clarity * 100)}%
+Efficiency: ${Math.round(results.scores.efficiency * 100)}%
+Total Time: ${Math.round(results.totalTime / 60)} minutes ${Math.round(results.totalTime % 60)} seconds
+
+Question Details:
+${results.answers.map((a, i) => `
+Question ${i + 1}: ${a.questionText}
+Your Answer: ${a.userAnswer}
+Correct Answer: ${a.correctAnswer}
+Score: ${Math.round(a.totalScore * 100)}%
+Time Spent: ${Math.round(a.timeSpent)} seconds
+`).join('\n')}
+
+Analysis:
+Strengths: ${results.scores.accuracy >= 0.7 ? 'Knowledge of eClinicalWorks procedures' : ''}
+          ${results.scores.clarity >= 0.7 ? 'Clear and organized communication' : ''}
+          ${results.scores.efficiency >= 0.7 ? 'Efficient typing and response time' : ''}
+
+Areas for Improvement: ${results.scores.accuracy < 0.7 ? 'Knowledge of eClinicalWorks procedures' : ''}
+                      ${results.scores.clarity < 0.7 ? 'Organization and clarity in responses' : ''}
+                      ${results.scores.efficiency < 0.7 ? 'Typing speed and response time' : ''}
+`;
+
+            // Create a blob and download link
+            const blob = new Blob([scoreText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = `ecw_quiz_${results.user.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            
+            // We don't automatically download, but make it available for printing
+        }
+
+        // Print results
+        printBtn.addEventListener('click', function() {
+            window.print();
+        });
+
+        // Restart quiz
+        restartBtn.addEventListener('click', function() {
+            resultsScreen.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            usernameInput.value = '';
+        });
+    </script>
+</body>
+</html>
+
