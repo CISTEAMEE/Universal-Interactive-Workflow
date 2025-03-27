@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eClinicalWorks Quiz Game</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen">
+            <div class="container">
+                <h1>eClinicalWorks Quiz Game</h1>
+                <div class="login-form">
+                    <div class="logo-container">
+                        <img src="assets/images/cls-health-logo.png" alt="CLS Health Logo" class="logo-image">
+                    </div>
+                    <label for="username">Enter your name:</label>
+                    <input type="text" id="username" placeholder="Your Name" required>
+                    <button id="login-btn">Start Quiz</button>
+                    <div class="admin-login">
+                        <p>Admin? <a href="#" id="admin-login-link">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Login Screen -->
+        <div id="admin-login-screen" class="screen hidden">
+            <div class="container">
+                <h1>Admin Login</h1>
+                <div class="login-form">
+                    <label for="admin-password">Enter admin password:</label>
+                    <input type="password" id="admin-password" placeholder="Password" required>
+                    <button id="admin-login-btn">Login</button>
+                    <button id="back-to-user-login" class="secondary-btn">Back to User Login</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard Screen -->
+        <div id="admin-dashboard" class="screen hidden">
+            <div class="container">
+                <h1>Admin Dashboard</h1>
+                <div class="admin-panel">
+                    <div class="admin-section">
+                        <h2>Upload Resources</h2>
+                        <div class="upload-form">
+                            <label for="resource-file">Upload eCW Manual or SOP:</label>
+                            <input type="file" id="resource-file" accept=".pdf,.doc,.docx">
+                            <button id="upload-resource-btn">Upload Resource</button>
+                        </div>
+                        <div id="resource-list" class="resource-list">
+                            <h3>Available Resources</h3>
+                            <ul id="resources-container">
+                                <!-- Resources will be listed here -->
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="admin-section">
+                        <h2>User Scores</h2>
+                        <button id="refresh-scores-btn">Refresh Scores</button>
+                        <div id="scores-container" class="scores-container">
+                            <!-- Scores will be displayed here -->
+                        </div>
+                        <button id="download-all-scores-btn">Download All Scores</button>
+                    </div>
+                    <button id="admin-logout-btn" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Screen -->
+        <div id="instructions-screen" class="screen hidden">
+            <div class="container">
+                <h1>Quiz Instructions</h1>
+                <div class="instructions">
+                    <p>Welcome to the eClinicalWorks Quiz Game!</p>
+                    <p>You will have 15 minutes to complete the quiz with approximately 90 seconds per question.</p>
+                    <p><strong>Grading Criteria:</strong></p>
+                    <ul>
+                        <li><strong>70%</strong> - Correctness and being to the point</li>
+                        <li><strong>15%</strong> - Clarity and organization (numbered lists or bullet points)</li>
+                        <li><strong>15%</strong> - Speed, grammar, punctuation, and typing efficiency</li>
+                    </ul>
+                    <p>As you answer questions correctly, you'll see a landscape develop with mountains, rivers, trees, and eventually a palace!</p>
+                    <p>Your rewards will evolve as you progress:</p>
+                    <ul>
+                        <li><strong>20% Score:</strong> Purple diamond ring and 20% of landscape</li>
+                        <li><strong>40% Score:</strong> Blue-purple ring and 40% of landscape</li>
+                        <li><strong>60% Score:</strong> Green diamond ring and 60% of landscape</li>
+                        <li><strong>80% Score:</strong> Big diamond stone and 80% of landscape</li>
+                        <li><strong>100% Score:</strong> Crown with diamond stones, CLS Health medal, and your name on the palace flag</li>
+                    </ul>
+                    <p>Click "Begin Quiz" when you're ready to start.</p>
+                    <button id="begin-btn">Begin Quiz</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="screen hidden">
+            <div class="container">
+                <div class="quiz-header">
+                    <div class="user-info">
+                        <span id="user-display"></span>
+                    </div>
+                    <div class="timer">
+                        <span>Time Remaining: </span>
+                        <span id="timer-display">15:00</span>
+                    </div>
+                    <div class="question-counter">
+                        <span>Question: </span>
+                        <span id="question-counter-display">1/10</span>
+                    </div>
+                </div>
+                
+                <div class="quiz-content">
+                    <div class="question-section">
+                        <div class="card">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <div class="card-content">
+                                        <h3>Draw a Card</h3>
+                                        <p>Click to reveal your question</p>
+                                    </div>
+                                </div>
+                                <div class="card-back">
+                                    <div class="card-content">
+                                        <h3>Question</h3>
+                                        <p id="question-text"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="draw-card-btn">Draw Card</button>
+                    </div>
+                    
+                    <div class="answer-section">
+                        <h3>Your Answer</h3>
+                        <div class="typing-metrics">
+                            <span>Words per minute: </span>
+                            <span id="wpm-display">0</span>
+                        </div>
+                        <textarea id="answer-input" placeholder="Type your answer here..." onpaste="return false"></textarea>
+                        <div class="answer-controls">
+                            <span id="question-timer">Time: 0s</span>
+                            <button id="submit-answer-btn" disabled>Submit Answer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Landscape Reward Screen -->
+        <div id="landscape-screen" class="screen hidden">
+            <div class="container">
+                <h2>Your Progress</h2>
+                <div class="landscape-container">
+                    <div id="landscape" class="landscape">
+                        <!-- Base landscape elements -->
+                        <div class="sky"></div>
+                        <div class="clouds hidden"></div>
+                        <div class="sun hidden"></div>
+                        <div class="mountains"></div>
+                        <div class="snow-cap hidden"></div>
+                        <div class="ground"></div>
+                        <div class="meadow hidden"></div>
+                        
+                        <!-- Elements that appear with progress -->
+                        <div class="river hidden"></div>
+                        <div class="bridge hidden"></div>
+                        <div class="pine-trees hidden"></div>
+                        <div class="olive-trees hidden"></div>
+                        <div class="palm-trees hidden"></div>
+                        <div class="roses hidden"></div>
+                        <div class="palace-foundation hidden"></div>
+                        <div class="palace-walls hidden"></div>
+                        <div class="palace-roof hidden"></div>
+                        <div class="palace-details hidden"></div>
+                        <div class="cart hidden"></div>
+                        <div class="flag hidden"></div>
+                        <div class="user-name-display hidden"></div>
+                        <div class="cls-medal hidden"></div>
+                    </div>
+                </div>
+                <div class="rewards-container">
+                    <h3>Your Rewards</h3>
+                    <div id="rewards-display" class="rewards-display">
+                        <div class="reward purple-ring hidden" data-threshold="20">
+                            <img src="assets/images/purple-ring.png" alt="Purple Diamond Ring">
+                            <span>Purple Diamond Ring</span>
+                        </div>
+                        <div class="reward blue-purple-ring hidden" data-threshold="40">
+                            <img src="assets/images/blue-purple-ring.png" alt="Blue-Purple Ring">
+                            <span>Blue-Purple Ring</span>
+                        </div>
+                        <div class="reward green-ring hidden" data-threshold="60">
+                            <img src="assets/images/green-ring.png" alt="Green Diamond Ring">
+                            <span>Green Diamond Ring</span>
+                        </div>
+                        <div class="reward big-diamond hidden" data-threshold="80">
+                            <img src="assets/images/big-diamond.png" alt="Big Diamond Stone">
+                            <span>Big Diamond Stone</span>
+                        </div>
+                        <div class="reward crown hidden" data-threshold="100">
+                            <img src="assets/images/crown.png" alt="Diamond Crown">
+                            <span>Diamond Crown</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="diamonds-container">
+                    <h3>Diamonds Collected: <span id="diamonds-count">0</span></h3>
+                    <div id="diamonds-display"></div>
+                </div>
+                <button id="continue-btn">Continue to Next Question</button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen hidden">
+            <div class="container">
+                <h1>Quiz Results</h1>
+                <div class="results-summary">
+                    <h2>Summary for <span id="result-user-name"></span></h2>
+                    <div class="score-breakdown">
+                        <p>Total Score: <span id="total-score">0</span>%</p>
+                        <p>Correctness: <span id="correctness-score">0</span>%</p>
+                        <p>Clarity & Organization: <span id="clarity-score">0</span>%</p>
+                        <p>Speed & Efficiency: <span id="efficiency-score">0</span>%</p>
+                        <p>Total Time: <span id="total-time">0</span></p>
+                        <p>Average Time per Question: <span id="avg-time">0</span></p>
+                        <p>Average WPM: <span id="avg-wpm">0</span></p>
+                    </div>
+                </div>
+                <div class="final-rewards">
+                    <h3>Your Achievements</h3>
+                    <div id="final-rewards-display"></div>
+                </div>
+                <div class="final-landscape">
+                    <h3>Your Landscape</h3>
+                    <div id="final-landscape-display"></div>
+                </div>
+                <div class="detailed-results">
+                    <h3>Detailed Question Analysis</h3>
+                    <div id="questions-review"></div>
+                </div>
+                <div class="improvement-suggestions">
+                    <h3>Suggestions for Improvement</h3>
+                    <div id="suggestions"></div>
+                </div>
+                <button id="download-results-btn">Download Results</button>
+                <button id="restart-quiz-btn">Take Quiz Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
